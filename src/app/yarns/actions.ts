@@ -19,7 +19,15 @@ const yarnSchema = z.object({
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
-export async function saveYarn(formData: FormData): Promise<ActionResult> {
+export async function saveYarn(formData: FormData): Promise<void> {
+  const result = await saveYarnImpl(formData);
+  if (result && 'ok' in result && !result.ok) {
+    throw new Error(result.error);
+  }
+}
+
+// Lower-level version that returns a result, for client-side use
+export async function saveYarnImpl(formData: FormData): Promise<ActionResult> {
   const raw = Object.fromEntries(formData.entries());
   const parsed = yarnSchema.safeParse(raw);
   if (!parsed.success) {
@@ -48,7 +56,17 @@ export async function deleteYarn(id: string) {
   revalidatePath('/yarns');
 }
 
-export async function restockYarn(formData: FormData): Promise<ActionResult> {
+export async function restockYarn(formData: FormData): Promise<void> {
+  const result = await restockYarnImpl(formData);
+  if (result && 'ok' in result && !result.ok) {
+    // Form-based callers get a generic error; client components
+    // should call restockYarnImpl directly to display the message.
+    throw new Error(result.error);
+  }
+}
+
+// Lower-level version that returns a result, for client-side use
+export async function restockYarnImpl(formData: FormData): Promise<ActionResult> {
   const yarnId = String(formData.get('yarnId') || '');
   const grams = Number(formData.get('grams') || 0);
   const costTotal = Number(formData.get('costTotal') || 0);
