@@ -1,0 +1,135 @@
+// Prisma schema for the Crochet Business Dashboard
+// SQLite for dev — swap DATABASE_URL to Postgres for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── RAW MATERIALS ────────────────────────────────────────────────
+model Yarn {
+  id           String         @id @default(cuid())
+  sku          String         @unique
+  brand        String
+  color        String
+  weightType   String         // DK / Sport / Worsted / Bulky
+  stockGrams   Float          @default(0)
+  costPerGram  Float
+  supplier     String?
+  reorderAt    Float?         // alert threshold in grams
+  notes        String?
+  createdAt    DateTime       @default(now())
+  recipeItems  RecipeItem[]
+  restocks     Restock[]
+  movements    StockMovement[]
+}
+
+model Restock {
+  id        String   @id @default(cuid())
+  yarn      Yarn     @relation(fields: [yarnId], references: [id], onDelete: Cascade)
+  yarnId    String
+  grams     Float
+  costTotal Float
+  supplier  String?
+  date      DateTime @default(now())
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  yarn      Yarn     @relation(fields: [yarnId], references: [id], onDelete: Cascade)
+  yarnId    String
+  type      String   // 'production' | 'restock' | 'adjustment' | 'waste'
+  grams     Float    // negative for outflow
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+// ─── PRODUCTS (DYNAMIC) ────────────────────────────────────────────
+model Product {
+  id           String       @id @default(cuid())
+  name         String
+  category     String       // amigurumi / garment / accessory / home / other
+  description  String?
+  laborHours   Float        @default(0)
+  sellingPrice Float
+  createdAt    DateTime     @default(now())
+  recipe       RecipeItem[]
+  productions  Production[]
+  orderItems   OrderItem[]
+}
+
+model RecipeItem {
+  id        String  @id @default(cuid())
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  yarn      Yarn    @relation(fields: [yarnId], references: [id])
+  yarnId    String
+  grams     Float
+}
+
+// ─── PRODUCTION LOG ────────────────────────────────────────────────
+model Production {
+  id         String   @id @default(cuid())
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  qty        Int
+  laborHours Float    @default(0)
+  notes      String?
+  producedAt DateTime @default(now())
+}
+
+// ─── SALES ─────────────────────────────────────────────────────────
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  instagram String?
+  notes     String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  customerId  String
+  orderDate   DateTime    @default(now())
+  channel     String      // instagram / in-person / whatsapp / website
+  status      String      // pending / partial / paid / delivered
+  amountPaid  Float       @default(0)
+  notes       String?
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  qty       Int
+  unitPrice Float
+}
+
+// ─── FINANCES ──────────────────────────────────────────────────────
+model Expenditure {
+  id          String   @id @default(cuid())
+  category    String   // materials / salary / rent / utilities / marketing / misc
+  amount      Float
+  date        DateTime
+  recurring   Boolean  @default(false)
+  description String?
+}
+
+model SalaryRecord {
+  id           String   @id @default(cuid())
+  employeeName String
+  amount       Float
+  month        DateTime // first day of month
+  paidOn       DateTime?
+  status       String   @default("pending") // paid / pending
+}
