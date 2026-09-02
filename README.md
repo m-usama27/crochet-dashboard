@@ -154,11 +154,12 @@ Full schema: see `prisma/schema.prisma`.
 ## 🚢 Deployment
 
 ### Option 1: Vercel (easiest, free tier)
-1. Push to GitHub
-2. Import on [vercel.com](https://vercel.com)
-3. Change `provider = "sqlite"` to `"postgresql"` in `prisma/schema.prisma`
-4. Add a Postgres DB (Neon/Supabase free tier) → set `DATABASE_URL` env var
-5. `npx prisma db push` once locally with the new URL to migrate the schema
+1. Create a Postgres DB at [neon.tech](https://neon.tech) (free, 0.5GB)
+2. Import this repo on [vercel.com](https://vercel.com)
+3. In Vercel project settings → Environment Variables, add:
+   - `DATABASE_URL` = your Neon connection string (the one with `?sslmode=require`)
+4. Vercel auto-detects Next.js. The build command in `vercel.json` runs `prisma generate && next build` so the Prisma client is regenerated for Postgres.
+5. After first deploy, run `npx prisma db push` locally (with Neon URL in `.env`) to create the tables. Or run it via Vercel's build output by including `prisma db push` in the build command for the first deploy only.
 
 ### Option 2: VPS (most control)
 1. Get a $5/mo VPS (Hetzner/DigitalOcean)
