@@ -20,7 +20,7 @@ export default async function ExpendituresPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">💸 Expenditures</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">💸 Expenditures</h2>
         <p className="text-sm text-gray-500 mt-1">
           {exps.length} entries · Total {fmtPKR(total)}
         </p>
@@ -51,7 +51,7 @@ export default async function ExpendituresPage() {
 
       <div className="card">
         <h3 className="font-semibold mb-3">Add Expenditure</h3>
-        <form action={addExpenditure} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <form action={addExpenditure} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label className="label">Category *</label>
             <select name="category" required className="input">

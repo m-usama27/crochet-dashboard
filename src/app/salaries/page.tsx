@@ -16,7 +16,7 @@ export default async function SalariesPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">👥 Salaries</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">👥 Salaries</h2>
         <p className="text-sm text-gray-500 mt-1">
           {salaries.length} records · Paid {fmtPKR(paid)} · Pending {fmtPKR(pending)}
         </p>
@@ -68,7 +68,7 @@ export default async function SalariesPage() {
 
       <div className="card">
         <h3 className="font-semibold mb-3">Add Salary Record</h3>
-        <form action={addSalary} className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <form action={addSalary} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
           <div><label className="label">Month *</label><input name="month" type="month" required defaultValue={thisMonth} className="input" /></div>
           <div><label className="label">Employee *</label><input name="employeeName" required className="input" placeholder="Saeeda" /></div>
           <div><label className="label">Amount (Rs) *</label><input name="amount" type="number" required className="input" /></div>

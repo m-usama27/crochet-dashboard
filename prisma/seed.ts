@@ -1,7 +1,15 @@
 // Realistic seed data for a Pakistani crochet business
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+// ⚠️  Default admin credentials. Change this immediately after first login
+//     in production by running the SQL or using the dashboard.
+const DEFAULT_ADMIN = {
+  username: 'admin',
+  password: 'admin123',
+};
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -18,6 +26,18 @@ async function main() {
   await prisma.expenditure.deleteMany();
   await prisma.salaryRecord.deleteMany();
   await prisma.customer.deleteMany();
+  await prisma.user.deleteMany();
+
+  // ─── Admin user ───────────────────────────────────────────────────
+  const passwordHash = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
+  await prisma.user.create({
+    data: {
+      username: DEFAULT_ADMIN.username,
+      passwordHash,
+    },
+  });
+  console.log(`  ✓ Admin user created: ${DEFAULT_ADMIN.username} / ${DEFAULT_ADMIN.password}`);
+  console.log('    ⚠ Change this password after first login!');
 
   // Yarns
   const yarns = await Promise.all([

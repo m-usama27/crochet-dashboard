@@ -9,7 +9,7 @@ export default async function NewProductPage() {
   });
   return (
     <div className="space-y-6 max-w-3xl">
-      <h2 className="text-3xl font-bold text-gray-900">🧸 New Product</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">🧸 New Product</h2>
       {yarns.length === 0 ? (
         <div className="card bg-sun-50 border-sun-200">
           ⚠ You need to add yarn first before creating products.{' '}

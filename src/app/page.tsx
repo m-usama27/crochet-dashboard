@@ -10,10 +10,10 @@ export default async function DashboardPage() {
   const today = new Date();
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-5 sm:space-y-6 max-w-7xl">
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h2>
           <p className="text-sm text-gray-500 mt-1">
             Overview for {monthLabel(today)} · {today.toLocaleDateString('en-PK', { weekday: 'long' })}
           </p>
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stat row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div className="stat-card border-l-4 border-peach-400">
           <span className="stat-label">Revenue (month)</span>
           <span className="stat-value text-peach-700">{fmtPKR(m.grossRevenue)}</span>

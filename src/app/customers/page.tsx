@@ -13,7 +13,7 @@ export default async function CustomersPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">👤 Customers</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">👤 Customers</h2>
         <p className="text-sm text-gray-500 mt-1">{customers.length} customers in your book</p>
       </div>
 
@@ -48,7 +48,7 @@ export default async function CustomersPage() {
 
       <div className="card">
         <h3 className="font-semibold mb-3">Add Customer</h3>
-        <form action={addCustomer} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <form action={addCustomer} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div><label className="label">Name *</label><input name="name" required className="input" /></div>
           <div><label className="label">Phone</label><input name="phone" className="input" /></div>
           <div><label className="label">Instagram</label><input name="instagram" className="input" placeholder="@handle" /></div>

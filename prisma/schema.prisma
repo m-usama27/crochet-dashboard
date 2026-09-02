@@ -133,3 +133,12 @@ model SalaryRecord {
   paidOn       DateTime?
   status       String   @default("pending") // paid / pending
 }
+
+// ─── AUTH (single admin) ────────────────────────────────────────────
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+}

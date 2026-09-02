@@ -50,7 +50,7 @@ export default function LogProductionForm({ products }: { products: Product[] })
           ✓ Production logged. Stock has been deducted.
         </div>
       )}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <div>
           <label className="label">Product *</label>
           <select name="productId" required className="input">

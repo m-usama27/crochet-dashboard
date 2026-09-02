@@ -19,7 +19,7 @@ export default async function YarnsPage() {
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">🧶 Yarn Stock</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">🧶 Yarn Stock</h2>
           <p className="text-sm text-gray-500 mt-1">
             {yarns.length} SKUs · Total value {fmtPKR(totalValue)} ·{' '}
             {lowCount > 0 ? (
@@ -90,7 +90,7 @@ export default async function YarnsPage() {
       {/* New Yarn Form */}
       <div id="new-yarn" className="card">
         <h3 className="font-semibold mb-3">Add New Yarn</h3>
-        <form action={saveYarn} className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <form action={saveYarn} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <div><label className="label">SKU</label><input name="sku" required className="input" placeholder="YRN-007" /></div>
           <div><label className="label">Brand</label><input name="brand" required className="input" /></div>
           <div><label className="label">Color</label><input name="color" required className="input" /></div>

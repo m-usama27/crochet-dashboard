@@ -39,7 +39,7 @@ body {
     @apply text-xs uppercase tracking-wide text-gray-500 font-medium;
   }
   .stat-value {
-    @apply text-2xl font-bold mt-1;
+    @apply text-xl sm:text-2xl font-bold mt-1;
   }
   .stat-delta {
     @apply text-xs mt-1;
@@ -52,6 +52,7 @@ body {
   }
   table.data {
     @apply w-full text-sm;
+    min-width: 640px;
   }
   table.data th {
     @apply text-left text-xs uppercase tracking-wide text-gray-500 font-semibold py-2 px-3 border-b border-peach-100;

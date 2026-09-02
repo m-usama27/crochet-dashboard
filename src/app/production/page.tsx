@@ -19,7 +19,7 @@ export default async function ProductionPage() {
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">🪡 Production Log</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">🪡 Production Log</h2>
           <p className="text-sm text-gray-500 mt-1">
             Each entry auto-deducts yarn from stock based on the product recipe
           </p>

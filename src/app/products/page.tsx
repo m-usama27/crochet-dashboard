@@ -18,7 +18,7 @@ export default async function ProductsPage() {
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">🧸 Products</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">🧸 Products</h2>
           <p className="text-sm text-gray-500 mt-1">
             {products.length} product{products.length === 1 ? '' : 's'} · Each has a recipe (yarn + grams) so stock auto-deducts on production
           </p>
