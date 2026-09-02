@@ -43,7 +43,7 @@ export default function Sidebar({ username }: { username?: string }) {
           </svg>
         </button>
         <div className="flex items-center gap-1.5 text-sm font-semibold text-peach-700">
-          <span>🧶</span> Crochet Co.
+          <span>🌼</span> Bloom by NK
         </div>
         <div className="w-9" /> {/* spacer to balance the burger */}
       </div>
@@ -71,7 +71,7 @@ export default function Sidebar({ username }: { username?: string }) {
       >
         <div className="mb-6 px-2 flex items-center justify-between">
           <h1 className="text-lg font-bold text-peach-700 flex items-center gap-2">
-            <span className="text-2xl">🧶</span> Crochet Co.
+            <span className="text-2xl">🌼</span> Bloom by NK
           </h1>
           <button
             aria-label="Close menu"

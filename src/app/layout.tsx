@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import { getOptionalUser } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: 'Crochet Business Dashboard',
+  title: 'Bloom by NK',
   description: 'Manage inventory, production, sales & analytics',
 };
 

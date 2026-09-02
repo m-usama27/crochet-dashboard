@@ -39,7 +39,7 @@ export default function LoginForm() {
     <form onSubmit={onSubmit} className="card space-y-4 w-full max-w-sm">
       <div className="text-center">
         <div className="text-4xl mb-2">🧶</div>
-        <h1 className="text-2xl font-bold text-gray-900">Crochet Co.</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Bloom by NK</h1>
         <p className="text-sm text-gray-500 mt-1">Sign in to continue</p>
       </div>
 
