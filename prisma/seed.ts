@@ -4,12 +4,23 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-// ⚠️  Default admin credentials. Change this immediately after first login
-//     in production by running the SQL or using the dashboard.
+// Admin credentials come from the environment — never hard-coded.
+// Set SEED_ADMIN_USERNAME / SEED_ADMIN_PASSWORD when running the seed, e.g.
+//   SEED_ADMIN_USERNAME=owner SEED_ADMIN_PASSWORD='<a strong password>' pnpm db:seed
 const DEFAULT_ADMIN = {
-  username: 'admin',
-  password: 'admin123',
+  username: process.env.SEED_ADMIN_USERNAME || 'admin',
 };
+
+function getAdminPassword(): string {
+  const p = process.env.SEED_ADMIN_PASSWORD;
+  if (!p || p.length < 8) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD is required and must be at least 8 characters long. ' +
+        'Set it as an environment variable when running the seed.',
+    );
+  }
+  return p;
+}
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -29,15 +40,14 @@ async function main() {
   await prisma.user.deleteMany();
 
   // ─── Admin user ───────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
+  const passwordHash = await bcrypt.hash(getAdminPassword(), 10);
   await prisma.user.create({
     data: {
       username: DEFAULT_ADMIN.username,
       passwordHash,
     },
   });
-  console.log(`  ✓ Admin user created: ${DEFAULT_ADMIN.username} / ${DEFAULT_ADMIN.password}`);
-  console.log('    ⚠ Change this password after first login!');
+  console.log(`  ✓ Admin user created: ${DEFAULT_ADMIN.username}`);
 
   // Yarns
   const yarns = await Promise.all([

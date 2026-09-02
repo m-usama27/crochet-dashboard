@@ -1,8 +1,5 @@
-allowBuilds:
-  '@prisma/client': set this to true or false
-  '@prisma/engines': set this to true or false
-  esbuild: set this to true or false
-  prisma: set this to true or false
+# pnpm 10 build-script approval. In pnpm 10+ these settings live in
+# pnpm-workspace.yaml (NOT in .npmrc/.pnpmrc, which pnpm ignores for them).
 onlyBuiltDependencies:
   - "@prisma/client"
   - "@prisma/engines"

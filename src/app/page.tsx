@@ -125,9 +125,9 @@ export default async function DashboardPage() {
         <div className="flex flex-wrap gap-2">
           <Link href="/yarns" className="btn-secondary">🧶 Manage Yarn</Link>
           <Link href="/products/new" className="btn-secondary">🧸 New Product</Link>
-          <Link href="/production/new" className="btn-secondary">🪡 Log Production</Link>
+          <Link href="/production" className="btn-secondary">🪡 Log Production</Link>
           <Link href="/orders/new" className="btn-secondary">🛍️ New Order</Link>
-          <Link href="/expenditures/new" className="btn-secondary">💸 Add Expense</Link>
+          <Link href="/expenditures" className="btn-secondary">💸 Add Expense</Link>
         </div>
       </div>
     </div>

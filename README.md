@@ -3,7 +3,7 @@
 A complete inventory, production, sales, and analytics dashboard for a small crochet business. Built for the kind of handmade-goods shop that needs to know *exactly* how much yarn they have, what each product costs to make, and whether they're actually making money.
 
 ![Status](https://img.shields.io/badge/status-MVP-blue)
-![Stack](https://img.shields.io/badge/stack-Next.js%2015%20%7C%20Prisma%20%7C%20SQLite-orange)
+![Stack](https://img.shields.io/badge/stack-Next.js%2015%20%7C%20Prisma%20%7C%20PostgreSQL-orange)
 
 ---
 
@@ -54,7 +54,7 @@ A complete inventory, production, sales, and analytics dashboard for a small cro
 |---|---|
 | Framework | **Next.js 15** (App Router, Server Actions) |
 | Language | TypeScript |
-| Database | **SQLite** (dev) → **PostgreSQL** (prod, swap 1 line) |
+| Database | **PostgreSQL** (Neon) — set `DATABASE_URL` |
 | ORM | **Prisma 5** |
 | UI | Tailwind CSS with custom warm pastel palette (peach, mint, lilac, sun-yellow) |
 | Charts | Recharts |
@@ -66,14 +66,16 @@ A complete inventory, production, sales, and analytics dashboard for a small cro
 
 ```bash
 # 1. Install deps
-pnpm install        # or: npm install
+pnpm install
 
 # 2. Set up the database
-pnpm db:push         # creates prisma/dev.db with the schema
-pnpm db:seed         # loads realistic sample data
+#    Point DATABASE_URL at your Postgres (Neon) connection string in .env,
+#    then push the schema and seed an admin user:
+pnpm db:push   # applies prisma/schema.prisma to the database
+SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD='<a strong password>' pnpm db:seed
 
 # 3. Run
-pnpm dev             # http://localhost:3000
+pnpm dev        # http://localhost:3000 — login with the admin you created above
 ```
 
 Optional:
@@ -154,12 +156,19 @@ Full schema: see `prisma/schema.prisma`.
 ## 🚢 Deployment
 
 ### Option 1: Vercel (easiest, free tier)
-1. Create a Postgres DB at [neon.tech](https://neon.tech) (free, 0.5GB)
-2. Import this repo on [vercel.com](https://vercel.com)
+1. Create a Postgres DB at [neon.tech](https://neon.tech) (free tier is fine).
+2. Import this repo on [vercel.com](https://vercel.com).
 3. In Vercel project settings → Environment Variables, add:
-   - `DATABASE_URL` = your Neon connection string (the one with `?sslmode=require`)
-4. Vercel auto-detects Next.js. The build command in `vercel.json` runs `prisma generate && next build` so the Prisma client is regenerated for Postgres.
-5. After first deploy, run `npx prisma db push` locally (with Neon URL in `.env`) to create the tables. Or run it via Vercel's build output by including `prisma db push` in the build command for the first deploy only.
+   - `DATABASE_URL` = your Neon connection string (**use the pooled/connection-pooler URL**, not the direct one, so serverless functions don't exhaust the connection pool).
+   - `SESSION_PASSWORD` = a random string of at least 32 characters. Generate one with: `openssl rand -hex 32`
+4. Vercel builds with `prisma generate && next build` (set in `vercel.json`) — build doesn't need a DB connection.
+5. After the first deploy (or locally), apply the schema to Neon and seed the admin:
+   ```bash
+   # run locally with the same DATABASE_URL as Vercel
+   pnpm db:push
+   SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD='<a strong password>' pnpm db:seed
+   ```
+   ⚠️ `db:seed` **wipes existing data** (it deletes all rows first) — run it only on an empty database.
 
 ### Option 2: VPS (most control)
 1. Get a $5/mo VPS (Hetzner/DigitalOcean)
@@ -168,7 +177,7 @@ Full schema: see `prisma/schema.prisma`.
 4. `pm2 start npm --name dashboard -- start`
 5. nginx + certbot for HTTPS
 
-SQLite works great on a VPS because the DB is just a file on disk.
+Postgres (Neon) works the same on a VPS — just point `DATABASE_URL` at Neon.
 
 ---
 

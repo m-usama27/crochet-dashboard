@@ -2,7 +2,7 @@
 // These are queried on demand — never stored
 
 import { prisma } from './prisma';
-import { startOfMonth, endOfMonth, startOfMonth as som } from './format';
+import { startOfMonth, endOfMonth } from './format';
 
 export async function getDashboardMetrics(reference = new Date()) {
   const monthStart = startOfMonth(reference);
@@ -19,7 +19,7 @@ export async function getDashboardMetrics(reference = new Date()) {
     0,
   );
   const collected = ordersThisMonth.reduce((s, o) => s + o.amountPaid, 0);
-  const pending = grossRevenue - collected;
+  const pending = Math.max(0, grossRevenue - collected);
 
   // Expenditures this month
   const exp = await prisma.expenditure.findMany({
@@ -97,7 +97,7 @@ export async function getDashboardMetrics(reference = new Date()) {
   const trend: { month: string; revenue: number; expenditure: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(reference.getFullYear(), reference.getMonth() - i, 1);
-    const s = som(d);
+    const s = startOfMonth(d);
     const e = endOfMonth(d);
     const [o, x, sa] = await Promise.all([
       prisma.order.findMany({

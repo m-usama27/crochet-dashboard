@@ -21,7 +21,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const user = await prisma.user.findUnique({ where: { username } });
+  let user;
+  try {
+    user = await prisma.user.findUnique({ where: { username } });
+  } catch (err) {
+    console.error('Login failed — database error:', err);
+    return NextResponse.json(
+      {
+        error:
+          'Could not reach the database. Verify DATABASE_URL on Vercel is your Neon connection string and that the schema has been pushed (prisma db push).',
+      },
+      { status: 500 },
+    );
+  }
+
   if (!user) {
     // Same response time as wrong-password to avoid user enumeration
     await bcrypt.compare(password, '$2a$10$invalidsaltinvalidsaltinvalidsaltinvalidsalti');

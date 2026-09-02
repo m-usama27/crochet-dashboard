@@ -1,5 +1,6 @@
 // Prisma schema for the Crochet Business Dashboard
-// SQLite for dev — swap DATABASE_URL to Postgres for production
+// PostgreSQL (Neon in production/Vercel) — set DATABASE_URL to your Neon
+// connection string. Run `prisma db push` to apply this schema.
 
 generator client {
   provider = "prisma-client-js"
