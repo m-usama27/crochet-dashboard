@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const fd = await req.formData();
   const customerId = String(fd.get('customerId') || '');
   const channel = String(fd.get('channel') || 'in-person');
-  const status = String(fd.get('status') || 'pending');
+  const requestedStatus = String(fd.get('status') || '');
   const amountPaid = Number(fd.get('amountPaid') || 0);
   const orderDate = new Date(String(fd.get('orderDate') || new Date()));
   const notes = String(fd.get('notes') || '');
@@ -25,6 +25,33 @@ export async function POST(req: NextRequest) {
   if (items.length === 0) {
     return NextResponse.json({ error: 'Add at least one item' }, { status: 400 });
   }
+
+  // Full order value comes from the line items, not the paid amount.
+  const total = items.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+
+  // Validate payment so it can never misrepresent the order.
+  if (!Number.isFinite(amountPaid) || amountPaid < 0) {
+    return NextResponse.json(
+      { error: 'Amount paid must be zero or more' },
+      { status: 400 },
+    );
+  }
+  if (amountPaid > total) {
+    return NextResponse.json(
+      { error: `Amount paid (${amountPaid}) cannot exceed the order total (${total})` },
+      { status: 400 },
+    );
+  }
+
+  // Auto-derive the payment status from how much was paid, so "paid" / "partial" /
+  // "pending" can never contradict the recorded amounts.
+  const derivedStatus =
+    amountPaid >= total ? 'paid' : amountPaid > 0 ? 'partial' : 'pending';
+  // "delivered" is a fulfillment tag and is only meaningful once fully paid.
+  const status =
+    requestedStatus === 'delivered' && amountPaid >= total
+      ? 'delivered'
+      : derivedStatus;
 
   await prisma.order.create({
     data: {

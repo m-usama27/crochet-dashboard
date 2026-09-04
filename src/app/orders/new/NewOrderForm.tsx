@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { fmtPKR } from '@/lib/format';
 
 type Product = { id: string; name: string; sellingPrice: number };
 type Customer = { id: string; name: string };
@@ -8,6 +9,8 @@ type Customer = { id: string; name: string };
 export default function NewOrderForm({ products, customers }: { products: Product[]; customers: Customer[] }) {
   const router = useRouter();
   const [items, setItems] = useState([{ productId: products[0]?.id || '', qty: 1, price: products[0]?.sellingPrice || 0 }]);
+  const [amountPaid, setAmountPaid] = useState(0);
+  const [delivered, setDelivered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   function addItem() {
@@ -29,9 +32,17 @@ export default function NewOrderForm({ products, customers }: { products: Produc
   }
 
   const total = items.reduce((s, i) => s + i.qty * i.price, 0);
+  const overpaid = amountPaid > total;
+  const pending = Math.max(0, total - amountPaid);
+
+  // Payment status is always derived from what was actually paid so it can never
+  // contradict the amounts. "Delivered" is an optional fulfillment tag that only
+  // applies once the order is fully paid.
+  const status = delivered && amountPaid >= total ? 'delivered' : amountPaid >= total ? 'paid' : amountPaid > 0 ? 'partial' : 'pending';
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (overpaid) return;
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     items.forEach((i) => {
@@ -39,6 +50,8 @@ export default function NewOrderForm({ products, customers }: { products: Produc
       fd.append('itemQty', String(i.qty));
       fd.append('itemPrice', String(i.price));
     });
+    fd.set('status', status);
+    fd.set('amountPaid', String(amountPaid));
     const res = await fetch('/api/orders', { method: 'POST', body: fd });
     if (res.ok) {
       router.push('/orders');
@@ -70,17 +83,48 @@ export default function NewOrderForm({ products, customers }: { products: Produc
           </select>
         </div>
         <div>
-          <label className="label">Status</label>
-          <select name="status" className="input">
-            <option value="pending">Pending</option>
-            <option value="partial">Partial Paid</option>
-            <option value="paid">Paid</option>
-            <option value="delivered">Delivered</option>
-          </select>
+          <label className="label">Amount Paid (Rs)</label>
+          <input
+            name="amountPaid"
+            type="number"
+            min="0"
+            value={amountPaid}
+            onChange={(e) => setAmountPaid(Math.max(0, Number(e.target.value) || 0))}
+            className="input"
+          />
+          {overpaid && (
+            <p className="text-xs text-red-600 mt-1">
+              Can't pay more than the total ({fmtPKR(total)}).
+            </p>
+          )}
         </div>
         <div>
-          <label className="label">Amount Paid (Rs)</label>
-          <input name="amountPaid" type="number" defaultValue={0} className="input" />
+          <span className="label">Status (auto)</span>
+          <div className="flex items-center gap-2">
+            <span className={`badge ${
+              status === 'paid' ? 'bg-mint-100 text-mint-600'
+              : status === 'delivered' ? 'bg-lilac-100 text-lilac-700'
+              : status === 'partial' ? 'bg-sun-100 text-sun-600'
+              : 'bg-red-100 text-red-700'
+            }`}>{status}</span>
+            {pending > 0 && status !== 'pending' && (
+              <span className="text-xs text-gray-500">
+                pending {fmtPKR(pending)}
+              </span>
+            )}
+          </div>
+          <label className="flex items-center gap-2 mt-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              disabled={amountPaid < total}
+              checked={delivered && amountPaid >= total}
+              onChange={(e) => setDelivered(e.target.checked)}
+            />
+            Delivered
+          </label>
+          {amountPaid < total && delivered && (
+            <p className="text-xs text-red-600 mt-1">Mark as <b>paid</b> before delivering.</p>
+          )}
         </div>
         <div>
           <label className="label">Order Date</label>

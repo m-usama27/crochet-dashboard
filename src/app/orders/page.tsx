@@ -38,7 +38,7 @@ export default async function OrdersPage({
     0,
   );
   const totalCollected = orders.reduce((s, o) => s + o.amountPaid, 0);
-  const totalPending = totalRevenue - totalCollected;
+  const totalPending = Math.max(0, totalRevenue - totalCollected);
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -72,6 +72,7 @@ export default async function OrdersPage({
           <tbody>
             {orders.map((o) => {
               const total = o.items.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+              const due = Math.max(0, total - o.amountPaid);
               return (
                 <tr key={o.id}>
                   <td className="text-xs text-gray-500">
@@ -82,7 +83,12 @@ export default async function OrdersPage({
                     {o.items.map((i) => `${i.qty}× ${i.product.name}`).join(', ')}
                   </td>
                   <td className="text-right font-medium">{fmtPKR(total)}</td>
-                  <td className="text-right text-mint-600">{fmtPKR(o.amountPaid)}</td>
+                  <td className="text-right text-mint-600">
+                    {fmtPKR(o.amountPaid)}
+                    {due > 0 && (
+                      <div className="text-xs text-red-600 font-medium">due {fmtPKR(due)}</div>
+                    )}
+                  </td>
                   <td><span className={`badge ${statusColor(o.status)}`}>{o.status}</span></td>
                   <td className="text-xs text-gray-500">{o.channel}</td>
                 </tr>
