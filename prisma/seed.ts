@@ -205,6 +205,7 @@ async function main() {
     { customerId: customers[0].id, daysAgo: 0, status: 'pending', amountPaid: 0, channel: 'instagram', items: [{ productId: coaster.id, qty: 1, price: 1400 }] },
     { customerId: customers[1].id, daysAgo: 0, status: 'paid', amountPaid: 5100, channel: 'whatsapp', items: [{ productId: teddy.id, qty: 1, price: 1500 }, { productId: bunny.id, qty: 2, price: 1800 }] },
     { customerId: customers[2].id, daysAgo: 0, status: 'paid', amountPaid: 3600, channel: 'instagram', items: [{ productId: sunflower.id, qty: 2, price: 1800 }] },
+    { customerId: customers[3].id, daysAgo: 0, status: 'paid', amountPaid: 1500, channel: 'food-story', items: [{ productId: teddy.id, qty: 1, price: 1500 }] },
   ];
 
   for (const o of orders) {

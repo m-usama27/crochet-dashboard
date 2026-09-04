@@ -1,13 +1,26 @@
 import { getDashboardMetrics } from '@/lib/analytics';
-import { fmtPKR, fmtGrams, monthLabel } from '@/lib/format';
+import { fmtPKR, fmtGrams, monthLabel, monthKey, parseMonthKey } from '@/lib/format';
 import { TrendChart, TopBarChart, CategoryPie } from '@/components/Charts';
+import MonthFilter from '@/components/MonthFilter';
+import ChannelFilter from '@/components/ChannelFilter';
+import { ALL_CHANNELS, channelLabel } from '@/lib/channels';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
-  const m = await getDashboardMetrics();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string; channel?: string }>;
+}) {
+  const sp = await searchParams;
+  const ref = parseMonthKey(sp.month); // defaults to the current month when absent/invalid
+  const viewingNonCurrent = monthKey(ref) !== monthKey(new Date());
+  const channel = sp.channel || ALL_CHANNELS;
+
+  const m = await getDashboardMetrics(ref, channel);
   const today = new Date();
+  const scoped = channel !== ALL_CHANNELS;
 
   return (
     <div className="space-y-5 sm:space-y-6 max-w-7xl">
@@ -15,25 +28,36 @@ export default async function DashboardPage() {
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Overview for {monthLabel(today)} · {today.toLocaleDateString('en-PK', { weekday: 'long' })}
+            Overview for{' '}
+            <span className="font-medium text-gray-700">{monthLabel(ref)}</span>
+            {viewingNonCurrent ? ' · (not current month)' : ''} ·{' '}
+            {today.toLocaleDateString('en-PK', { weekday: 'long' })}
           </p>
         </div>
-        <Link href="/production" className="btn-primary">
-          + Log Production
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter month={monthKey(ref)} />
+          <ChannelFilter value={channel} month={monthKey(ref)} />
+          <Link href="/production" className="btn-primary">
+            + Log Production
+          </Link>
+        </div>
       </div>
 
       {/* Stat row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div className="stat-card border-l-4 border-peach-400">
-          <span className="stat-label">Revenue (month)</span>
+          <span className="stat-label">
+            Revenue · {channelLabel(channel)}
+          </span>
           <span className="stat-value text-peach-700">{fmtPKR(m.grossRevenue)}</span>
           <span className="stat-delta text-gray-500">
             Collected {fmtPKR(m.collected)} · Pending {fmtPKR(m.pending)}
           </span>
         </div>
         <div className="stat-card border-l-4 border-lilac-400">
-          <span className="stat-label">Expenditure</span>
+          <span className="stat-label">
+            Expenditure{scoped ? ' · all channels' : ''}
+          </span>
           <span className="stat-value text-lilac-700">{fmtPKR(m.totalExpenditure)}</span>
           <span className="stat-delta text-gray-500">
             Materials {fmtPKR(m.materialCost)} · Overhead incl. salary
@@ -45,7 +69,7 @@ export default async function DashboardPage() {
             {fmtPKR(m.profit)}
           </span>
           <span className="stat-delta text-gray-500">
-            Margin: {m.margin.toFixed(1)}%
+            Margin: {m.margin.toFixed(1)}%{scoped ? ' · vs all-ch. costs' : ''}
           </span>
         </div>
         <div className="stat-card border-l-4 border-sun-400">
@@ -92,9 +116,27 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-3 gap-4">
         <div className="card">
-          <h3 className="font-semibold mb-3">🏆 Top-Selling Products (this month)</h3>
+          <h3 className="font-semibold mb-1">🧸 Units Produced (this month)</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            {m.unitsProduced} unit{m.unitsProduced === 1 ? '' : 's'} made across{' '}
+            {m.producedByProduct.length} product types
+          </p>
+          {m.producedByProduct.length > 0 ? (
+            <TopBarChart
+              data={m.producedByProduct.map((p) => ({ name: p.name, produced: p.qty }))}
+              dataKey="produced"
+              nameKey="name"
+            />
+          ) : (
+            <p className="text-sm text-gray-500 py-8 text-center">No production this month yet</p>
+          )}
+        </div>
+        <div className="card">
+          <h3 className="font-semibold mb-3">
+            🏆 Top-Selling Products · {channelLabel(channel)}
+          </h3>
           {m.topProducts.length > 0 ? (
             <TopBarChart
               data={m.topProducts.map((p) => ({ name: p.name, sold: p.qty }))}
@@ -102,7 +144,7 @@ export default async function DashboardPage() {
               nameKey="name"
             />
           ) : (
-            <p className="text-sm text-gray-500 py-8 text-center">No sales this month yet</p>
+            <p className="text-sm text-gray-500 py-8 text-center">No sales for this channel & month</p>
           )}
         </div>
         <div className="card">

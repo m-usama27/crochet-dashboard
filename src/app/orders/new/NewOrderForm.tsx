@@ -66,6 +66,7 @@ export default function NewOrderForm({ products, customers }: { products: Produc
             <option value="whatsapp">WhatsApp</option>
             <option value="in-person">In-person</option>
             <option value="website">Website</option>
+            <option value="food-story">Food Story</option>
           </select>
         </div>
         <div>

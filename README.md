@@ -27,7 +27,7 @@ A complete inventory, production, sales, and analytics dashboard for a small cro
 
 ### Sales & Customers
 - Multi-item orders with payment status (pending/partial/paid/delivered)
-- Channel tracking (Instagram / WhatsApp / in-person / website)
+- Channel tracking (Instagram / WhatsApp / in-person / website / Food Story)
 - Customer database with lifetime value (LTV) auto-computed
 - Amount paid vs pending surfaced everywhere
 

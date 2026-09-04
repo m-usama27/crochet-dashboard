@@ -99,7 +99,7 @@ model Order {
   customer    Customer    @relation(fields: [customerId], references: [id])
   customerId  String
   orderDate   DateTime    @default(now())
-  channel     String      // instagram / in-person / whatsapp / website
+  channel     String      // instagram / in-person / whatsapp / website / food-story
   status      String      // pending / partial / paid / delivered
   amountPaid  Float       @default(0)
   notes       String?

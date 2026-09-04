@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { fmtPKR } from '@/lib/format';
+import { ALL_CHANNELS, channelLabel } from '@/lib/channels';
+import ChannelFilter from '@/components/ChannelFilter';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +14,18 @@ const statusColor = (s: string) =>
     pending: 'bg-red-100 text-red-700',
   }[s] || 'bg-gray-100 text-gray-700');
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ channel?: string }>;
+}) {
+  const { channel } = await searchParams;
+  const selected = channel || ALL_CHANNELS;
+  const scoped = selected !== ALL_CHANNELS;
+
+  const where = scoped ? { channel: selected } : {};
   const orders = await prisma.order.findMany({
+    where,
     include: {
       customer: true,
       items: { include: { product: true } },
@@ -34,10 +46,14 @@ export default async function OrdersPage() {
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">🛍️ Orders</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {orders.length} orders · Revenue {fmtPKR(totalRevenue)} · Pending {fmtPKR(totalPending)}
+            {orders.length} orders · {channelLabel(selected)} · Revenue{' '}
+            {fmtPKR(totalRevenue)} · Pending {fmtPKR(totalPending)}
           </p>
         </div>
-        <Link href="/orders/new" className="btn-primary">+ New Order</Link>
+        <div className="flex items-center gap-2">
+          <ChannelFilter value={selected} />
+          <Link href="/orders/new" className="btn-primary">+ New Order</Link>
+        </div>
       </div>
 
       <div className="card table-wrap">

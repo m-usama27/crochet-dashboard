@@ -3,15 +3,29 @@
 
 import { prisma } from './prisma';
 import { startOfMonth, endOfMonth } from './format';
+import { ALL_CHANNELS } from './channels';
 
-export async function getDashboardMetrics(reference = new Date()) {
+// Sales-channel filter. Only order-derived metrics (revenue, collected, pending,
+// top-selling products, trend revenue) are scoped to the channel. Expenditure and
+// material cost are business overhead that isn't tagged to a channel, so they stay
+// "all channels" — profit is therefore channel revenue minus overall costs.
+export async function getDashboardMetrics(
+  reference = new Date(),
+  channel?: string,
+) {
   const monthStart = startOfMonth(reference);
   const monthEnd = endOfMonth(reference);
 
+  const isAll = !channel || channel === ALL_CHANNELS;
+
   // Revenue this month (only paid or partial orders count toward cash-in;
   // we report gross sales and amount collected separately)
+  const orderWhere: { orderDate: { gte: Date; lte: Date }; channel?: string } = {
+    orderDate: { gte: monthStart, lte: monthEnd },
+  };
+  if (!isAll) orderWhere.channel = channel;
   const ordersThisMonth = await prisma.order.findMany({
-    where: { orderDate: { gte: monthStart, lte: monthEnd } },
+    where: orderWhere,
     include: { items: { include: { product: { include: { recipe: true } } } } },
   });
   const grossRevenue = ordersThisMonth.reduce(
@@ -93,6 +107,27 @@ export async function getDashboardMetrics(reference = new Date()) {
     .sort((a, b) => b.grams - a.grams)
     .slice(0, 5);
 
+  // Units produced per product this month (how many of each product were made)
+  const unitsProduced = productions.reduce((s, p) => s + p.qty, 0);
+  const madePerProduct = new Map<
+    string,
+    { id: string; name: string; qty: number; laborHours: number }
+  >();
+  for (const p of productions) {
+    const existing = madePerProduct.get(p.productId) || {
+      id: p.productId,
+      name: p.product.name,
+      qty: 0,
+      laborHours: 0,
+    };
+    existing.qty += p.qty;
+    existing.laborHours += p.laborHours;
+    madePerProduct.set(p.productId, existing);
+  }
+  const producedByProduct = [...madePerProduct.values()]
+    .sort((a, b) => b.qty - a.qty || b.laborHours - a.laborHours)
+    .slice(0, 5);
+
   // Last 6 months of revenue and expenditure (for trend chart)
   const trend: { month: string; revenue: number; expenditure: number }[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -101,7 +136,10 @@ export async function getDashboardMetrics(reference = new Date()) {
     const e = endOfMonth(d);
     const [o, x, sa] = await Promise.all([
       prisma.order.findMany({
-        where: { orderDate: { gte: s, lte: e } },
+        where: {
+          orderDate: { gte: s, lte: e },
+          ...(!isAll ? { channel } : {}),
+        },
         include: { items: true },
       }),
       prisma.expenditure.findMany({ where: { date: { gte: s, lte: e } } }),
@@ -132,6 +170,7 @@ export async function getDashboardMetrics(reference = new Date()) {
   }));
 
   return {
+    channel: isAll ? ALL_CHANNELS : channel,
     grossRevenue,
     collected,
     pending,
@@ -143,6 +182,8 @@ export async function getDashboardMetrics(reference = new Date()) {
     lowStock,
     topProducts,
     topYarns,
+    unitsProduced,
+    producedByProduct,
     trend,
     expenditureByCategory,
     orderCount: ordersThisMonth.length,
