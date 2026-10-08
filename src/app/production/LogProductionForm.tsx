@@ -4,8 +4,15 @@ import { useRouter } from 'next/navigation';
 import { logProduction } from './actions';
 
 type Product = { id: string; name: string };
+type Employee = { id: string; name: string; role: string | null };
 
-export default function LogProductionForm({ products }: { products: Product[] }) {
+export default function LogProductionForm({
+  products,
+  employees,
+}: {
+  products: Product[];
+  employees: Employee[];
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +45,15 @@ export default function LogProductionForm({ products }: { products: Product[] })
     );
   }
 
+  if (employees.length === 0) {
+    return (
+      <div className="card bg-sun-50 border-sun-200 text-sm">
+        ⚠ Add at least one employee on the <a href="/salaries" className="underline font-medium">Salaries</a> page
+        before logging production.
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       {error && (
@@ -50,11 +66,22 @@ export default function LogProductionForm({ products }: { products: Product[] })
           ✓ Production logged. Stock has been deducted.
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
         <div>
           <label className="label">Product *</label>
           <select name="productId" required className="input">
             {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Made By *</label>
+          <select name="employeeId" required className="input" defaultValue="">
+            <option value="" disabled>Select employee</option>
+            {employees.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name}{e.role ? ` (${e.role})` : ''}
+              </option>
+            ))}
           </select>
         </div>
         <div>
@@ -74,7 +101,7 @@ export default function LogProductionForm({ products }: { products: Product[] })
             className="input"
           />
         </div>
-        <div className="md:col-span-3">
+        <div className="md:col-span-4">
           <label className="label">Notes</label>
           <input name="notes" className="input" placeholder="e.g. for pending orders + stock" />
         </div>

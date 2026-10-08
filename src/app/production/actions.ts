@@ -8,6 +8,7 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 
 export async function logProduction(formData: FormData): Promise<ActionResult> {
   const productId = String(formData.get('productId') || '');
+  const employeeId = String(formData.get('employeeId') || '');
   const qty = Number(formData.get('qty') || 0);
   const laborHours = Number(formData.get('laborHours') || 0);
   const producedAt = new Date(String(formData.get('producedAt') || new Date()));
@@ -15,11 +16,21 @@ export async function logProduction(formData: FormData): Promise<ActionResult> {
 
   // ── Layer 1: input validation ──────────────────────────────────────
   if (!productId) return { ok: false, error: 'Please select a product.' };
+  if (!employeeId) return { ok: false, error: 'Please select who made this piece.' };
   if (!Number.isFinite(qty) || qty <= 0) {
     return { ok: false, error: 'Quantity must be greater than zero.' };
   }
   if (!Number.isFinite(laborHours) || laborHours < 0) {
     return { ok: false, error: 'Labor hours cannot be negative.' };
+  }
+
+  // The employee must still exist and be active (they may have been
+  // deactivated since the page was loaded)
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, active: true },
+  });
+  if (!employee) {
+    return { ok: false, error: 'Selected employee no longer exists or is inactive.' };
   }
 
   // Pre-load the recipe (we already know the grams from it)
@@ -39,7 +50,7 @@ export async function logProduction(formData: FormData): Promise<ActionResult> {
     await prisma.$transaction(async (tx) => {
       // Log the production first
       await tx.production.create({
-        data: { productId, qty, laborHours, notes, producedAt },
+        data: { productId, employeeId, qty, laborHours, notes, producedAt },
       });
 
       for (const r of recipe) {

@@ -1,17 +1,26 @@
 import { prisma } from '@/lib/prisma';
 import { fmtPKR } from '@/lib/format';
 import { addSalary, markSalaryPaid, deleteSalary } from './actions';
+import EmployeeManager from './EmployeeManager';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SalariesPage() {
-  const salaries = await prisma.salaryRecord.findMany({
-    orderBy: [{ month: 'desc' }, { employeeName: 'asc' }],
-  });
+  const [salaries, employees] = await Promise.all([
+    prisma.salaryRecord.findMany({
+      orderBy: [{ month: 'desc' }, { employeeName: 'asc' }],
+      include: { employee: true },
+    }),
+    prisma.employee.findMany({
+      orderBy: [{ active: 'desc' }, { name: 'asc' }],
+      include: { _count: { select: { salaries: true, productions: true } } },
+    }),
+  ]);
   const total = salaries.reduce((s, x) => s + x.amount, 0);
   const paid = salaries.filter((s) => s.status === 'paid').reduce((s, x) => s + x.amount, 0);
   const pending = total - paid;
   const thisMonth = new Date().toISOString().slice(0, 7);
+  const activeEmployees = employees.filter((e) => e.active);
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -21,6 +30,8 @@ export default async function SalariesPage() {
           {salaries.length} records · Paid {fmtPKR(paid)} · Pending {fmtPKR(pending)}
         </p>
       </div>
+
+      <EmployeeManager employees={employees} />
 
       <div className="card table-wrap">
         <table className="data">
@@ -33,7 +44,7 @@ export default async function SalariesPage() {
                 <td className="text-xs text-gray-500">
                   {s.month.toLocaleDateString('en-PK', { month: 'long', year: 'numeric' })}
                 </td>
-                <td className="font-medium">{s.employeeName}</td>
+                <td className="font-medium">{s.employee?.name ?? s.employeeName ?? '—'}</td>
                 <td className="text-right">{fmtPKR(s.amount)}</td>
                 <td>
                   {s.status === 'paid' ? (
@@ -70,7 +81,17 @@ export default async function SalariesPage() {
         <h3 className="font-semibold mb-3">Add Salary Record</h3>
         <form action={addSalary} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
           <div><label className="label">Month *</label><input name="month" type="month" required defaultValue={thisMonth} className="input" /></div>
-          <div><label className="label">Employee *</label><input name="employeeName" required className="input" placeholder="Saeeda" /></div>
+          <div>
+            <label className="label">Employee *</label>
+            <select name="employeeId" required className="input" defaultValue="">
+              <option value="" disabled>Select employee</option>
+              {activeEmployees.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}{e.role ? ` (${e.role})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
           <div><label className="label">Amount (Rs) *</label><input name="amount" type="number" required className="input" /></div>
           <div>
             <label className="label">Status</label>

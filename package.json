@@ -9,6 +9,8 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-demo": "tsx prisma/seed-demo.ts",
+    "db:backfill-employees": "tsx prisma/backfill-employees.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {

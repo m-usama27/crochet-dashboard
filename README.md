@@ -23,6 +23,7 @@ A complete inventory, production, sales, and analytics dashboard for a small cro
 ### Production
 - "I made 5 of these today" → auto-deducts yarn via the recipe
 - **Atomic stock protection** — the system physically cannot let you produce more than you have yarn for (prevents negative stock, race-condition safe)
+- Every entry is linked to the **employee who made it** (chosen from the team list)
 - Labor hours captured for cost tracking
 
 ### Sales & Customers
@@ -34,7 +35,8 @@ A complete inventory, production, sales, and analytics dashboard for a small cro
 ### Finances
 - Categorized expenditures (rent, utilities, marketing, materials, misc)
 - Recurring vs one-time flag
-- Monthly salary records per employee
+- Monthly salary records per employee, linked to the shared Employee record
+- Team management (add / deactivate / remove employees) used by both Salaries and Production
 - Auto P&L: revenue − material cost − expenditure = **net profit**
 
 ### Analytics Dashboard
@@ -70,9 +72,9 @@ pnpm install
 
 # 2. Set up the database
 #    Point DATABASE_URL at your Postgres (Neon) connection string in .env,
-#    then push the schema and seed an admin user:
+#    then push the schema and seed a clean (empty) database:
 pnpm db:push   # applies prisma/schema.prisma to the database
-SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD='<a strong password>' pnpm db:seed
+pnpm db:seed   # wipes all business data; preserves/creates the admin login
 
 # 3. Run
 pnpm dev        # http://localhost:3000 — login with the admin you created above
@@ -87,8 +89,9 @@ Optional:
 
 ```
 prisma/
-  schema.prisma      # 11 models: Yarn, Product, Recipe, Production, Order...
-  seed.ts            # Sample data (yarn, products, customers, orders)
+  schema.prisma      # 13 models: Yarn, Product, Recipe, Production, Employee, Order...
+  seed.ts            # Clean seed (wipes all data, keeps admin)
+  seed-demo.ts       # Optional fake demo dataset (pnpm db:seed-demo)
 src/
   app/
     page.tsx              # Dashboard
@@ -147,6 +150,9 @@ Customer ── Order ── OrderItem
 
 Expenditure   (rent, utilities, marketing, materials, misc)
 SalaryRecord  (per employee, per month)
+
+Employee ──┬─ Production   (who made each piece)
+           └─ SalaryRecord (whose salary it is)
 ```
 
 Full schema: see `prisma/schema.prisma`.
@@ -166,9 +172,9 @@ Full schema: see `prisma/schema.prisma`.
    ```bash
    # run locally with the same DATABASE_URL as Vercel
    pnpm db:push
-   SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD='<a strong password>' pnpm db:seed
+   pnpm db:seed     # wipes all rows; keeps (or creates) the admin login
    ```
-   ⚠️ `db:seed` **wipes existing data** (it deletes all rows first) — run it only on an empty database.
+   ⚠️ `db:seed` **wipes all business data** (yarns, products, orders, customers, salaries, employees) — it deletes every row except the admin user. Use `pnpm db:seed-demo` if you want a fake demo dataset instead.
 
 ### Option 2: VPS (most control)
 1. Get a $5/mo VPS (Hetzner/DigitalOcean)
